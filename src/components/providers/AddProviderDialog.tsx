@@ -68,7 +68,7 @@ export function AddProviderDialog({
     appId !== "opencode" &&
     appId !== "openclaw" &&
     appId !== "hermes" &&
-    appId !== "pi" &&
+    appId !== "pi" && appId !== "rpi" &&
     appId !== "mcode" &&
     appId !== "grokbuild" &&
     appId !== "claude-desktop";
@@ -180,12 +180,12 @@ export function AddProviderDialog({
   currentFormReadyToken.current = formReadyToken;
   const [formReadyState, setFormReadyState] = useState({
     token: formReadyToken,
-    ready: appId !== "pi",
+    ready: appId !== "pi" && appId !== "rpi",
   });
   const isFormReady =
     formReadyState.token === formReadyToken
       ? formReadyState.ready
-      : appId !== "pi";
+      : appId !== "pi" && appId !== "rpi";
   const handleSubmitReadyChange = useCallback(
     (ready: boolean) => {
       if (currentFormReadyToken.current === formReadyToken) {
@@ -288,7 +288,7 @@ export function AddProviderDialog({
         (appId === "opencode" ||
           appId === "openclaw" ||
           appId === "hermes" ||
-          appId === "pi" ||
+          appId === "pi" || appId === "rpi" ||
           appId === "mcode") &&
         values.providerKey
       ) {
@@ -555,7 +555,7 @@ export function AddProviderDialog({
       contentClassName={
         step === "pick"
           ? "flex h-full flex-col space-y-0 p-0"
-          : appId === "pi"
+          : appId === "pi" || appId === "rpi"
             ? "pb-0 pt-4"
             : "pt-4"
       }

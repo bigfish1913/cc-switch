@@ -56,7 +56,7 @@ impl PromptService {
         state: &AppState,
         app: AppType,
     ) -> Result<IndexMap<String, Prompt>, AppError> {
-        if matches!(app, AppType::Pi) {
+        if matches!(app, AppType::Pi | AppType::Rpi) {
             return get_pi_prompts(state);
         }
         // A restore replaces the DB before projecting it to live files. Keep
@@ -90,7 +90,7 @@ impl PromptService {
         id: &str,
         prompt: Prompt,
     ) -> Result<(), AppError> {
-        if matches!(app, AppType::Pi) {
+        if matches!(app, AppType::Pi | AppType::Rpi) {
             return upsert_pi_prompt(state, id, prompt);
         }
 
@@ -123,7 +123,7 @@ impl PromptService {
     }
 
     pub fn delete_prompt(state: &AppState, app: AppType, id: &str) -> Result<(), AppError> {
-        if matches!(app, AppType::Pi) {
+        if matches!(app, AppType::Pi | AppType::Rpi) {
             return delete_pi_prompt(state, id);
         }
         let _guard = if app == AppType::Mcode {
@@ -148,7 +148,7 @@ impl PromptService {
     }
 
     pub fn enable_prompt(state: &AppState, app: AppType, id: &str) -> Result<(), AppError> {
-        if matches!(app, AppType::Pi) {
+        if matches!(app, AppType::Pi | AppType::Rpi) {
             return enable_pi_prompt(state, id);
         }
         if app == AppType::Mcode {
@@ -229,7 +229,7 @@ impl PromptService {
     }
 
     pub fn import_from_file(state: &AppState, app: AppType) -> Result<String, AppError> {
-        let content = if matches!(app, AppType::Pi) {
+        let content = if matches!(app, AppType::Pi | AppType::Rpi) {
             PiAgentsFileGuard::acquire()?
                 .read()?
                 .content
@@ -262,7 +262,7 @@ impl PromptService {
     }
 
     pub fn get_current_file_content(app: AppType) -> Result<Option<String>, AppError> {
-        if matches!(app, AppType::Pi) {
+        if matches!(app, AppType::Pi | AppType::Rpi) {
             return Ok(PiAgentsFileGuard::acquire()?.read()?.content);
         }
         let file_path = prompt_file_path(&app)?;
@@ -343,7 +343,7 @@ impl PromptService {
         let file_path = prompt_file_path(&app)?;
 
         // 读取文件内容。Pi 与交互式管理路径共用限长读取和协调锁。
-        let content = if matches!(app, AppType::Pi) {
+        let content = if matches!(app, AppType::Pi | AppType::Rpi) {
             match PiAgentsFileGuard::acquire().and_then(|guard| guard.read()) {
                 Ok(snapshot) => match snapshot.content {
                     Some(content) => content,
@@ -388,7 +388,7 @@ impl PromptService {
             description: Some("Automatically imported on first launch".to_string()),
             // Pi derives active state from AGENTS.md. Other apps retain their
             // established persisted prompt selection.
-            enabled: !matches!(app, AppType::Pi),
+            enabled: !matches!(app, AppType::Pi | AppType::Rpi),
             created_at: Some(timestamp),
             updated_at: Some(timestamp),
         };

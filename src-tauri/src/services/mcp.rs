@@ -124,7 +124,7 @@ impl McpService {
         app: AppType,
         enabled: bool,
     ) -> Result<(), AppError> {
-        if matches!(app, AppType::Mcode | AppType::Pi) {
+        if matches!(app, AppType::Mcode | AppType::Pi | AppType::Rpi) {
             if let Some(server) = state.db.get_all_mcp_servers()?.get(server_id) {
                 let spec = enabled.then_some(&server.server);
                 let commit = || {
@@ -162,7 +162,7 @@ impl McpService {
     /// 将 MCP 服务器同步到所有启用的应用
     fn sync_server_to_apps(_state: &AppState, server: &McpServer) -> Result<(), AppError> {
         for app in server.apps.enabled_apps() {
-            if matches!(app, AppType::Mcode | AppType::Pi) {
+            if matches!(app, AppType::Mcode | AppType::Pi | AppType::Rpi) {
                 continue; // Already written before saving the managed state.
             }
             Self::sync_server_to_app_no_config(server, &app)?;
@@ -218,7 +218,7 @@ impl McpService {
                 mcp::sync_single_server_to_hermes(&Default::default(), &server.id, &server.server)?;
             }
             AppType::Mcode => mcp::mcode::sync(&server.id, Some(&server.server))?,
-            AppType::Pi => mcp::pi::sync(&server.id, Some(&server.server))?,
+            AppType::Pi | AppType::Rpi => mcp::pi::sync(&server.id, Some(&server.server))?,
         }
         Ok(())
     }
@@ -231,7 +231,7 @@ impl McpService {
     ) -> Result<(), AppError> {
         // 从所有曾启用的应用中移除
         for app in server.apps.enabled_apps() {
-            if matches!(app, AppType::Mcode | AppType::Pi) {
+            if matches!(app, AppType::Mcode | AppType::Pi | AppType::Rpi) {
                 continue; // Already removed before deleting the managed record.
             }
             Self::remove_server_from_app(state, id, &app)?;
@@ -259,7 +259,7 @@ impl McpService {
                 mcp::remove_server_from_hermes(id)?;
             }
             AppType::Mcode => mcp::mcode::sync(id, None)?,
-            AppType::Pi => mcp::pi::sync(id, None)?,
+            AppType::Pi | AppType::Rpi => mcp::pi::sync(id, None)?,
         }
         Ok(())
     }
@@ -365,7 +365,7 @@ impl McpService {
         for server in servers.values() {
             let result = if server.apps.is_enabled_for(app) {
                 Self::sync_server_to_app(state, server, app)
-            } else if !matches!(app, AppType::Mcode | AppType::Pi) {
+            } else if !matches!(app, AppType::Mcode | AppType::Pi | AppType::Rpi) {
                 Self::remove_server_from_app(state, &server.id, app)
             } else {
                 // MCode / Pi's false flag also covers pre-existing, unmanaged servers.

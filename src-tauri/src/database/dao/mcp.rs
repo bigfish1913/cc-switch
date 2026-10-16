@@ -94,7 +94,7 @@ impl Database {
             AppType::Hermes => Some("enabled_hermes"),
             // These applications intentionally have no MCP flag in the SSOT.
             AppType::Mcode => Some("enabled_mcode"),
-            AppType::Pi => Some("enabled_pi"),
+            AppType::Pi | AppType::Rpi => Some("enabled_pi"),
             AppType::ClaudeDesktop | AppType::OpenClaw => None,
         };
 
